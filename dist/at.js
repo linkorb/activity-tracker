@@ -1,0 +1,85 @@
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/at.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./src/at.js":
+/*!*******************!*\
+  !*** ./src/at.js ***!
+  \*******************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("(function (w, d) {\n    var t = {\n      sender: 'websocket',\n      debug: false,\n      serverUri: null,\n      conf: {},\n      stack: [],\n      agent: {},\n      lastPushStamp: 0,\n      lastPushIndex: 0,\n      reportInterval: 5000,\n      handle: null,\n      log: function (data) {\n        if (this.debug) console.log(data)\n      },\n      showStack: function() {\n        this.log(this.stack)\n      },\n      getStackMeta: function() {\n        let m = this.conf;\n        m.uri = w.location.href;\n        return m;\n      },\n      getStackLast: function() {\n        return this.stack[this.stack.length - 1];\n      },\n      provision: function() {\n        this.configure();\n        this.stack.push({\n          stamp: this.getStamp(),\n          event: 'provision',\n          meta: this.getStackMeta(),\n          agent: this.agent\n        });\n        this.log('_at provisioned')\n      },\n      configure: function () {\n        if (this.conf.sender) {\n            this.sender = this.conf.sender;\n        }\n        if (this.conf.serverUri) {\n            this.serverUri = this.conf.serverUri;\n        }\n        if (this.conf.debug) {\n          this.debug = !!this.conf.debug;\n        }\n        if (this.conf.reportInterval) {\n          this.reportInterval = parseInt(this.conf.reportInterval);\n        }\n        this.log(this.conf)\n      },\n      init: function () {\n        this.initAgent();\n        this.provision();\n        this.connect();\n        this.exposeUtil();\n        ['mousemove', 'click', 'dblclick', 'keyup', 'scroll'].forEach(t.listenEvent);\n        this.log('_at initialized');\n      },\n      initAgent: function() {\n        if (typeof w.platform === 'undefined') {\n          return false;\n        }\n        this.agent = {\n          ua: w.platform.ua,\n          name: w.platform.name,\n          version: w.platform.version,\n          product: w.platform.product,\n          manufacturer: w.platform.manufacturer,\n          os: w.platform.os,\n          layout: w.platform.layout,\n          locale: navigator.language,\n        };\n      },\n      connect: function() {\n        if (!this.serverUri) {\n          this.log('serverUri not configured!');\n          return false;\n        }\n        if (this.handle) {\n          return this.handle;\n        }\n        if (this.sender == 'websocket') {\n          try {\n            this.handle = new WebSocket(this.serverUri);\n            this.handle.onopen = function() {\n              t.send()\n            }\n          } catch (err) {\n            this.log('failed to connect to server')\n          }\n        }\n      },\n      listenEvent: function(name) {\n        d.addEventListener(name, t.record);\n      },\n      record: function(event) {\n        let d = {\n          stamp: t.getStamp(),\n          event: event.type,\n          meta: t.getStackMeta(),\n          properties: {}\n        };\n        switch (event.type) {\n          case 'scroll':\n            if ((d.stamp - t.getStackLast().stamp) < 500) {\n              return;\n            }\n            d.properties.pageYOffset = w.pageYOffset;\n            d.properties.pageXOffset = w.pageXOffset;\n            break;\n          case 'mousemove':\n            if ((d.stamp - t.getStackLast().stamp) < 1000) {\n              return;\n            }\n            d.properties.cursorX = event.pageX;\n            d.properties.cursorY = event.pageY;\n            break;\n          case 'keyup':\n            d.properties.keyCode = event.keyCode;\n            break;\n          case 'click':\n            d.properties.cursorX = event.pageX;\n            d.properties.cursorY = event.pageY;\n            break;\n          case 'dblclick':\n            d.properties.cursorX = event.pageX;\n            d.properties.cursorY = event.pageY;\n            break;\n          default:\n            break;\n        }\n        t.stack.push(d)\n      },\n      send: function (inclAgent) {\n        if (this.handle) {\n          let payload = [];\n          for (var i = this.lastPushIndex; i < this.stack.length; i++) {\n            payload.push(this.stack[i])\n          }\n          this.lastPushIndex = i;\n          if (this.handle && this.handle.readyState === 1) {\n            this.handle.send(JSON.stringify(payload));\n            w.setTimeout(function(){\n              t.send()\n            }, this.reportInterval);\n          } else {\n            this.log('websocket not ready')\n          }\n        }\n      },\n      getStamp: function () {\n        if (!Date.now) {\n            Date.now = function() { return new Date().getTime(); }\n        }\n        return Date.now()\n      },\n      exposeUtil: function() {\n        // expose method to show stack info\n        if (this.debug) {\n          w.atStack = t.showStack.bind(t);\n          // it's recommended not to expose the lib\n          // w._at = t;\n        }\n      }\n    }\n\n    // Expose provision method so that provising can be invoked after changing config\n    w.atProvision = t.provision.bind(t);\n\n    // Expose the configurator as a function\n    // e.g. at('debug'), at('contentId', 6)\n    w.at = function() {\n      let args = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));\n      if (!args[0]) return false;\n      t.conf[args[0]] = args[1] || true;\n    };\n    \n    d.addEventListener('DOMContentLoaded', t.init.bind(t));\n})(window, document);\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvYXQuanMuanMiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8vLi9zcmMvYXQuanM/YmM5NiJdLCJzb3VyY2VzQ29udGVudCI6WyIoZnVuY3Rpb24gKHcsIGQpIHtcbiAgICB2YXIgdCA9IHtcbiAgICAgIHNlbmRlcjogJ3dlYnNvY2tldCcsXG4gICAgICBkZWJ1ZzogZmFsc2UsXG4gICAgICBzZXJ2ZXJVcmk6IG51bGwsXG4gICAgICBjb25mOiB7fSxcbiAgICAgIHN0YWNrOiBbXSxcbiAgICAgIGFnZW50OiB7fSxcbiAgICAgIGxhc3RQdXNoU3RhbXA6IDAsXG4gICAgICBsYXN0UHVzaEluZGV4OiAwLFxuICAgICAgcmVwb3J0SW50ZXJ2YWw6IDUwMDAsXG4gICAgICBoYW5kbGU6IG51bGwsXG4gICAgICBsb2c6IGZ1bmN0aW9uIChkYXRhKSB7XG4gICAgICAgIGlmICh0aGlzLmRlYnVnKSBjb25zb2xlLmxvZyhkYXRhKVxuICAgICAgfSxcbiAgICAgIHNob3dTdGFjazogZnVuY3Rpb24oKSB7XG4gICAgICAgIHRoaXMubG9nKHRoaXMuc3RhY2spXG4gICAgICB9LFxuICAgICAgZ2V0U3RhY2tNZXRhOiBmdW5jdGlvbigpIHtcbiAgICAgICAgbGV0IG0gPSB0aGlzLmNvbmY7XG4gICAgICAgIG0udXJpID0gdy5sb2NhdGlvbi5ocmVmO1xuICAgICAgICByZXR1cm4gbTtcbiAgICAgIH0sXG4gICAgICBnZXRTdGFja0xhc3Q6IGZ1bmN0aW9uKCkge1xuICAgICAgICByZXR1cm4gdGhpcy5zdGFja1t0aGlzLnN0YWNrLmxlbmd0aCAtIDFdO1xuICAgICAgfSxcbiAgICAgIHByb3Zpc2lvbjogZnVuY3Rpb24oKSB7XG4gICAgICAgIHRoaXMuY29uZmlndXJlKCk7XG4gICAgICAgIHRoaXMuc3RhY2sucHVzaCh7XG4gICAgICAgICAgc3RhbXA6IHRoaXMuZ2V0U3RhbXAoKSxcbiAgICAgICAgICBldmVudDogJ3Byb3Zpc2lvbicsXG4gICAgICAgICAgbWV0YTogdGhpcy5nZXRTdGFja01ldGEoKSxcbiAgICAgICAgICBhZ2VudDogdGhpcy5hZ2VudFxuICAgICAgICB9KTtcbiAgICAgICAgdGhpcy5sb2coJ19hdCBwcm92aXNpb25lZCcpXG4gICAgICB9LFxuICAgICAgY29uZmlndXJlOiBmdW5jdGlvbiAoKSB7XG4gICAgICAgIGlmICh0aGlzLmNvbmYuc2VuZGVyKSB7XG4gICAgICAgICAgICB0aGlzLnNlbmRlciA9IHRoaXMuY29uZi5zZW5kZXI7XG4gICAgICAgIH1cbiAgICAgICAgaWYgKHRoaXMuY29uZi5zZXJ2ZXJVcmkpIHtcbiAgICAgICAgICAgIHRoaXMuc2VydmVyVXJpID0gdGhpcy5jb25mLnNlcnZlclVyaTtcbiAgICAgICAgfVxuICAgICAgICBpZiAodGhpcy5jb25mLmRlYnVnKSB7XG4gICAgICAgICAgdGhpcy5kZWJ1ZyA9ICEhdGhpcy5jb25mLmRlYnVnO1xuICAgICAgICB9XG4gICAgICAgIGlmICh0aGlzLmNvbmYucmVwb3J0SW50ZXJ2YWwpIHtcbiAgICAgICAgICB0aGlzLnJlcG9ydEludGVydmFsID0gcGFyc2VJbnQodGhpcy5jb25mLnJlcG9ydEludGVydmFsKTtcbiAgICAgICAgfVxuICAgICAgICB0aGlzLmxvZyh0aGlzLmNvbmYpXG4gICAgICB9LFxuICAgICAgaW5pdDogZnVuY3Rpb24gKCkge1xuICAgICAgICB0aGlzLmluaXRBZ2VudCgpO1xuICAgICAgICB0aGlzLnByb3Zpc2lvbigpO1xuICAgICAgICB0aGlzLmNvbm5lY3QoKTtcbiAgICAgICAgdGhpcy5leHBvc2VVdGlsKCk7XG4gICAgICAgIFsnbW91c2Vtb3ZlJywgJ2NsaWNrJywgJ2RibGNsaWNrJywgJ2tleXVwJywgJ3Njcm9sbCddLmZvckVhY2godC5saXN0ZW5FdmVudCk7XG4gICAgICAgIHRoaXMubG9nKCdfYXQgaW5pdGlhbGl6ZWQnKTtcbiAgICAgIH0sXG4gICAgICBpbml0QWdlbnQ6IGZ1bmN0aW9uKCkge1xuICAgICAgICBpZiAodHlwZW9mIHcucGxhdGZvcm0gPT09ICd1bmRlZmluZWQnKSB7XG4gICAgICAgICAgcmV0dXJuIGZhbHNlO1xuICAgICAgICB9XG4gICAgICAgIHRoaXMuYWdlbnQgPSB7XG4gICAgICAgICAgdWE6IHcucGxhdGZvcm0udWEsXG4gICAgICAgICAgbmFtZTogdy5wbGF0Zm9ybS5uYW1lLFxuICAgICAgICAgIHZlcnNpb246IHcucGxhdGZvcm0udmVyc2lvbixcbiAgICAgICAgICBwcm9kdWN0OiB3LnBsYXRmb3JtLnByb2R1Y3QsXG4gICAgICAgICAgbWFudWZhY3R1cmVyOiB3LnBsYXRmb3JtLm1hbnVmYWN0dXJlcixcbiAgICAgICAgICBvczogdy5wbGF0Zm9ybS5vcyxcbiAgICAgICAgICBsYXlvdXQ6IHcucGxhdGZvcm0ubGF5b3V0LFxuICAgICAgICAgIGxvY2FsZTogbmF2aWdhdG9yLmxhbmd1YWdlLFxuICAgICAgICB9O1xuICAgICAgfSxcbiAgICAgIGNvbm5lY3Q6IGZ1bmN0aW9uKCkge1xuICAgICAgICBpZiAoIXRoaXMuc2VydmVyVXJpKSB7XG4gICAgICAgICAgdGhpcy5sb2coJ3NlcnZlclVyaSBub3QgY29uZmlndXJlZCEnKTtcbiAgICAgICAgICByZXR1cm4gZmFsc2U7XG4gICAgICAgIH1cbiAgICAgICAgaWYgKHRoaXMuaGFuZGxlKSB7XG4gICAgICAgICAgcmV0dXJuIHRoaXMuaGFuZGxlO1xuICAgICAgICB9XG4gICAgICAgIGlmICh0aGlzLnNlbmRlciA9PSAnd2Vic29ja2V0Jykge1xuICAgICAgICAgIHRyeSB7XG4gICAgICAgICAgICB0aGlzLmhhbmRsZSA9IG5ldyBXZWJTb2NrZXQodGhpcy5zZXJ2ZXJVcmkpO1xuICAgICAgICAgICAgdGhpcy5oYW5kbGUub25vcGVuID0gZnVuY3Rpb24oKSB7XG4gICAgICAgICAgICAgIHQuc2VuZCgpXG4gICAgICAgICAgICB9XG4gICAgICAgICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICAgICAgICB0aGlzLmxvZygnZmFpbGVkIHRvIGNvbm5lY3QgdG8gc2VydmVyJylcbiAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgIH0sXG4gICAgICBsaXN0ZW5FdmVudDogZnVuY3Rpb24obmFtZSkge1xuICAgICAgICBkLmFkZEV2ZW50TGlzdGVuZXIobmFtZSwgdC5yZWNvcmQpO1xuICAgICAgfSxcbiAgICAgIHJlY29yZDogZnVuY3Rpb24oZXZlbnQpIHtcbiAgICAgICAgbGV0IGQgPSB7XG4gICAgICAgICAgc3RhbXA6IHQuZ2V0U3RhbXAoKSxcbiAgICAgICAgICBldmVudDogZXZlbnQudHlwZSxcbiAgICAgICAgICBtZXRhOiB0LmdldFN0YWNrTWV0YSgpLFxuICAgICAgICAgIHByb3BlcnRpZXM6IHt9XG4gICAgICAgIH07XG4gICAgICAgIHN3aXRjaCAoZXZlbnQudHlwZSkge1xuICAgICAgICAgIGNhc2UgJ3Njcm9sbCc6XG4gICAgICAgICAgICBpZiAoKGQuc3RhbXAgLSB0LmdldFN0YWNrTGFzdCgpLnN0YW1wKSA8IDUwMCkge1xuICAgICAgICAgICAgICByZXR1cm47XG4gICAgICAgICAgICB9XG4gICAgICAgICAgICBkLnByb3BlcnRpZXMucGFnZVlPZmZzZXQgPSB3LnBhZ2VZT2Zmc2V0O1xuICAgICAgICAgICAgZC5wcm9wZXJ0aWVzLnBhZ2VYT2Zmc2V0ID0gdy5wYWdlWE9mZnNldDtcbiAgICAgICAgICAgIGJyZWFrO1xuICAgICAgICAgIGNhc2UgJ21vdXNlbW92ZSc6XG4gICAgICAgICAgICBpZiAoKGQuc3RhbXAgLSB0LmdldFN0YWNrTGFzdCgpLnN0YW1wKSA8IDEwMDApIHtcbiAgICAgICAgICAgICAgcmV0dXJuO1xuICAgICAgICAgICAgfVxuICAgICAgICAgICAgZC5wcm9wZXJ0aWVzLmN1cnNvclggPSBldmVudC5wYWdlWDtcbiAgICAgICAgICAgIGQucHJvcGVydGllcy5jdXJzb3JZID0gZXZlbnQucGFnZVk7XG4gICAgICAgICAgICBicmVhaztcbiAgICAgICAgICBjYXNlICdrZXl1cCc6XG4gICAgICAgICAgICBkLnByb3BlcnRpZXMua2V5Q29kZSA9IGV2ZW50LmtleUNvZGU7XG4gICAgICAgICAgICBicmVhaztcbiAgICAgICAgICBjYXNlICdjbGljayc6XG4gICAgICAgICAgICBkLnByb3BlcnRpZXMuY3Vyc29yWCA9IGV2ZW50LnBhZ2VYO1xuICAgICAgICAgICAgZC5wcm9wZXJ0aWVzLmN1cnNvclkgPSBldmVudC5wYWdlWTtcbiAgICAgICAgICAgIGJyZWFrO1xuICAgICAgICAgIGNhc2UgJ2RibGNsaWNrJzpcbiAgICAgICAgICAgIGQucHJvcGVydGllcy5jdXJzb3JYID0gZXZlbnQucGFnZVg7XG4gICAgICAgICAgICBkLnByb3BlcnRpZXMuY3Vyc29yWSA9IGV2ZW50LnBhZ2VZO1xuICAgICAgICAgICAgYnJlYWs7XG4gICAgICAgICAgZGVmYXVsdDpcbiAgICAgICAgICAgIGJyZWFrO1xuICAgICAgICB9XG4gICAgICAgIHQuc3RhY2sucHVzaChkKVxuICAgICAgfSxcbiAgICAgIHNlbmQ6IGZ1bmN0aW9uIChpbmNsQWdlbnQpIHtcbiAgICAgICAgaWYgKHRoaXMuaGFuZGxlKSB7XG4gICAgICAgICAgbGV0IHBheWxvYWQgPSBbXTtcbiAgICAgICAgICBmb3IgKHZhciBpID0gdGhpcy5sYXN0UHVzaEluZGV4OyBpIDwgdGhpcy5zdGFjay5sZW5ndGg7IGkrKykge1xuICAgICAgICAgICAgcGF5bG9hZC5wdXNoKHRoaXMuc3RhY2tbaV0pXG4gICAgICAgICAgfVxuICAgICAgICAgIHRoaXMubGFzdFB1c2hJbmRleCA9IGk7XG4gICAgICAgICAgaWYgKHRoaXMuaGFuZGxlICYmIHRoaXMuaGFuZGxlLnJlYWR5U3RhdGUgPT09IDEpIHtcbiAgICAgICAgICAgIHRoaXMuaGFuZGxlLnNlbmQoSlNPTi5zdHJpbmdpZnkocGF5bG9hZCkpO1xuICAgICAgICAgICAgdy5zZXRUaW1lb3V0KGZ1bmN0aW9uKCl7XG4gICAgICAgICAgICAgIHQuc2VuZCgpXG4gICAgICAgICAgICB9LCB0aGlzLnJlcG9ydEludGVydmFsKTtcbiAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgdGhpcy5sb2coJ3dlYnNvY2tldCBub3QgcmVhZHknKVxuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgfSxcbiAgICAgIGdldFN0YW1wOiBmdW5jdGlvbiAoKSB7XG4gICAgICAgIGlmICghRGF0ZS5ub3cpIHtcbiAgICAgICAgICAgIERhdGUubm93ID0gZnVuY3Rpb24oKSB7IHJldHVybiBuZXcgRGF0ZSgpLmdldFRpbWUoKTsgfVxuICAgICAgICB9XG4gICAgICAgIHJldHVybiBEYXRlLm5vdygpXG4gICAgICB9LFxuICAgICAgZXhwb3NlVXRpbDogZnVuY3Rpb24oKSB7XG4gICAgICAgIC8vIGV4cG9zZSBtZXRob2QgdG8gc2hvdyBzdGFjayBpbmZvXG4gICAgICAgIGlmICh0aGlzLmRlYnVnKSB7XG4gICAgICAgICAgdy5hdFN0YWNrID0gdC5zaG93U3RhY2suYmluZCh0KTtcbiAgICAgICAgICAvLyBpdCdzIHJlY29tbWVuZGVkIG5vdCB0byBleHBvc2UgdGhlIGxpYlxuICAgICAgICAgIC8vIHcuX2F0ID0gdDtcbiAgICAgICAgfVxuICAgICAgfVxuICAgIH1cblxuICAgIC8vIEV4cG9zZSBwcm92aXNpb24gbWV0aG9kIHNvIHRoYXQgcHJvdmlzaW5nIGNhbiBiZSBpbnZva2VkIGFmdGVyIGNoYW5naW5nIGNvbmZpZ1xuICAgIHcuYXRQcm92aXNpb24gPSB0LnByb3Zpc2lvbi5iaW5kKHQpO1xuXG4gICAgLy8gRXhwb3NlIHRoZSBjb25maWd1cmF0b3IgYXMgYSBmdW5jdGlvblxuICAgIC8vIGUuZy4gYXQoJ2RlYnVnJyksIGF0KCdjb250ZW50SWQnLCA2KVxuICAgIHcuYXQgPSBmdW5jdGlvbigpIHtcbiAgICAgIGxldCBhcmdzID0gKGFyZ3VtZW50cy5sZW5ndGggPT09IDEgPyBbYXJndW1lbnRzWzBdXSA6IEFycmF5LmFwcGx5KG51bGwsIGFyZ3VtZW50cykpO1xuICAgICAgaWYgKCFhcmdzWzBdKSByZXR1cm4gZmFsc2U7XG4gICAgICB0LmNvbmZbYXJnc1swXV0gPSBhcmdzWzFdIHx8IHRydWU7XG4gICAgfTtcbiAgICBcbiAgICBkLmFkZEV2ZW50TGlzdGVuZXIoJ0RPTUNvbnRlbnRMb2FkZWQnLCB0LmluaXQuYmluZCh0KSk7XG59KSh3aW5kb3csIGRvY3VtZW50KTtcbiJdLCJtYXBwaW5ncyI6IkFBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOyIsInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///./src/at.js\n");
+
+/***/ })
+
+/******/ });

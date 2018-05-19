@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+    <title>Activity tracker</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An activity tracker demo">
+    <meta name="keywords" content="activity,tracker,javascript" />
+    <meta name="author" content="Hongliang">
+</head>
+<body style="text-align:center;">
+    <div style="border:solid 1px red;height: 500px; width: 500px;text-align:center;">
+        this is a DIV with 500 px height.
+    </div>
+    <button type="button">Click me</button>
+
+    <script src="node_modules/platform/platform.js"></script>
+    <script src="dist/at.min.js"></script>
+    <!--script src="src/at.js"></script-->
+    <script>
+        at('debug')
+        //at('reportInterval', 1000)
+        at('contentId', 6)
+        at('userGroup', 'Cool people')
+        at('requestId', 'aa-bb-cc-dd-eee')
+        at('serverUri', 'ws://127.0.0.1:7777')
+    </script>
+    
+</body>
+</html>
