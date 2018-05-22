@@ -10,6 +10,8 @@
       lastPushIndex: 0,
       reportInterval: 5000,
       handle: null,
+      recordEventTypes: ['mousemove', 'click', 'dblclick', 'keyup', 'scroll'],
+      reportEventTypes: ['mousemove', 'click', 'dblclick', 'keyup', 'scroll'],
       log: function (data) {
         if (this.debug) console.log(data)
       },
@@ -47,6 +49,13 @@
         if (this.conf.reportInterval) {
           this.reportInterval = parseInt(this.conf.reportInterval);
         }
+        if (this.conf.subscribe) {
+          this.reportEventTypes = [];
+          (this.conf.subscribe + '').split(',').forEach(function(e){
+            if (e.trim())
+              t.reportEventTypes.push(e.trim())
+          })
+        }
         this.log(this.conf)
       },
       init: function () {
@@ -54,7 +63,7 @@
         this.provision();
         this.connect();
         this.exposeUtil();
-        ['mousemove', 'click', 'dblclick', 'keyup', 'scroll'].forEach(t.listenEvent);
+        this.recordEventTypes.forEach(t.listenEvent);
         this.log('_at initialized');
       },
       initAgent: function() {
@@ -71,25 +80,6 @@
           layout: w.platform.layout,
           locale: navigator.language,
         };
-      },
-      connect: function() {
-        if (!this.serverUri) {
-          this.log('serverUri not configured!');
-          return false;
-        }
-        if (this.handle) {
-          return this.handle;
-        }
-        if (this.sender == 'websocket') {
-          try {
-            this.handle = new WebSocket(this.serverUri);
-            this.handle.onopen = function() {
-              t.send()
-            }
-          } catch (err) {
-            this.log('failed to connect to server')
-          }
-        }
       },
       listenEvent: function(name) {
         d.addEventListener(name, t.record);
@@ -132,22 +122,70 @@
         }
         t.stack.push(d)
       },
-      send: function (inclAgent) {
+      connect: function() {
+        if (!this.serverUri) {
+          this.log('serverUri not configured!');
+          return false;
+        }
         if (this.handle) {
+          return this.handle;
+        }
+        if (this.sender == 'websocket') {
+          try {
+            this.handle = new WebSocket(this.serverUri);
+            this.handle.onopen = function() {
+              t.send()
+            }
+          } catch (err) {
+            this.log('failed to connect to server')
+          }
+        } else if (this.sender == 'xmlhttp') {
+          this.handle = new XMLHttpRequest();
+          this.handle.open('POST', this.serverUri, true);
+          this.handle.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+          this.handle.onreadystatechange = function() {
+            if (this.handle.readyState == 4 && this.handle.status == 200){
+              w.setTimeout(function(){
+                t.send()
+              }, this.reportInterval);
+            }
+          }
+          t.send()
+        } else {
+          this.log('Unsupported sender: ' + this.sender)
+        }
+      },
+      send: function () {
+        if (this.handle) {
+          // construct payload
           let payload = [];
           for (var i = this.lastPushIndex; i < this.stack.length; i++) {
-            payload.push(this.stack[i])
+            if (this.stack[i]['event'] == 'provision' || this.reportEventTypes.indexOf(this.stack[i]['event']) >= 0)
+              payload.push(this.stack[i])
           }
           this.lastPushIndex = i;
-          if (this.handle && this.handle.readyState === 1) {
-            this.handle.send(JSON.stringify(payload));
-            w.setTimeout(function(){
-              t.send()
-            }, this.reportInterval);
-          } else {
-            this.log('websocket not ready')
-          }
+
+          this['send'+this.sender](JSON.stringify(payload))
         }
+      },
+      sendwebsocket: function(payload) {
+        if (this.sender != 'websocket') {
+          return false;
+        }
+        if (this.handle.readyState === 1) {
+          this.handle.send(payload);
+          w.setTimeout(function(){
+            t.send()
+          }, this.reportInterval);
+        } else {
+          this.log(t.sender + ' not ready')
+        }
+      },
+      sendxmlhttp: function(payload) {
+        if (this.sender != 'xmlhttp') {
+          return false;
+        }
+        this.handle.send('&payload='+payload);
       },
       getStamp: function () {
         if (!Date.now) {

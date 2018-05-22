@@ -26,14 +26,48 @@ It is possible to configure the activity-tracker:
 <script>
     // turn on debug mode
     at('debug')
-    // server address to report to
+
+    // server address to report to - websocket
+    // at('sender', 'websocket'); // optional, the default sender is websocket
     at('serverUri', 'ws://127.0.0.1:7777')
+
+    // server address to report to - ajax
+    at('sender', 'xmlhttp')
+    at('serverUri', 'http://localhost/myWebserver')
+    
     // time interval to report to the server, in ms. default 5000
     at('reportInterval', 6000) 
+
     // custom variables
     at('contentId', 6)
     at('userGroup', 'Cool people')
     at('requestId', 'aa-bb-cc-dd-eee')
+</script>
+```
+
+## Re-provision
+When new content/page is loaded without page reload, e.g. AJAX, you can re-provision the activity-tracker:
+```html
+<script>
+at('contentId', 7);
+at('requestId', 'ff-gg-hh-ii-jjj');
+atProvision();
+</script>
+```
+
+## Subscribe only to certain events
+By default, activity-tracker reports the following events: __mousemove__, __click__, __dblclick__, __keyup__, __scroll__. You can specify only certain events are reported:
+```javascript
+// only report click and scroll events
+at('subscribe', 'click, scroll');
+atProvision();
+```
+
+## Inspect local activity stack
+```html
+<script>
+// list all the activity objects recorded
+atStack()
 </script>
 ```
 
