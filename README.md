@@ -7,6 +7,10 @@ activity-tracker.js is a simple way to track browser side user behavior. It is h
 ```
 npm install @linkorb/activity-tracker
 ```
+To build activity-tracker into your lib with webpack:
+```
+require('@linkorb/activity-tracker');
+```
 
 ## Demo
 
@@ -38,10 +42,11 @@ It is possible to configure the activity-tracker:
     // time interval to report to the server, in ms. default 5000
     at('reportInterval', 6000) 
 
-    // custom variables
-    at('contentId', 6)
-    at('userGroup', 'Cool people')
-    at('requestId', 'aa-bb-cc-dd-eee')
+    // custom/meta variables
+    at('meta', 'meRock')
+    at('meta', 'contentId', 6)
+    at('meta', 'userGroup', 'Cool people')
+    at('meta', 'requestId', 'aa-bb-cc-dd-eee')
 </script>
 ```
 

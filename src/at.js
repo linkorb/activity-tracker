@@ -3,7 +3,7 @@
       sender: 'websocket',
       debug: false,
       serverUri: null,
-      conf: {},
+      conf: {'meta':{}},
       stack: [],
       agent: {},
       lastPushStamp: 0,
@@ -19,7 +19,7 @@
         this.log(this.stack)
       },
       getStackMeta: function() {
-        let m = this.conf;
+        var m = this.conf.meta;
         m.uri = w.location.href;
         return m;
       },
@@ -85,7 +85,7 @@
         d.addEventListener(name, t.record);
       },
       record: function(event) {
-        let d = {
+        var d = {
           stamp: t.getStamp(),
           event: event.type,
           meta: t.getStackMeta(),
@@ -158,7 +158,7 @@
       send: function () {
         if (this.handle) {
           // construct payload
-          let payload = [];
+          var payload = [];
           for (var i = this.lastPushIndex; i < this.stack.length; i++) {
             if (this.stack[i]['event'] == 'provision' || this.reportEventTypes.indexOf(this.stack[i]['event']) >= 0)
               payload.push(this.stack[i])
@@ -209,9 +209,13 @@
     // Expose the configurator as a function
     // e.g. at('debug'), at('contentId', 6)
     w.at = function() {
-      let args = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+      var args = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
       if (!args[0]) return false;
-      t.conf[args[0]] = args[1] || true;
+      if (args[0] == 'meta') {
+        t.conf.meta[args[1]] = args[2] || true;
+      } else {
+        t.conf[args[0]] = args[1] || true;
+      }
     };
     
     d.addEventListener('DOMContentLoaded', t.init.bind(t));
