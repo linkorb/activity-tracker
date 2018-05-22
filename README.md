@@ -28,8 +28,11 @@ It is possible to configure the activity-tracker:
 <script src="dist/at.min.js"></script>
 <!-- configuread activity-tracker -->
 <script>
-    // turn on debug mode
+    // turn on debug mode. Optional
     at('debug')
+
+    // serverUri is required
+    // without serverUri nothing is recorded, nor reported
 
     // server address to report to - websocket
     // at('sender', 'websocket'); // optional, the default sender is websocket
@@ -39,10 +42,10 @@ It is possible to configure the activity-tracker:
     at('sender', 'xmlhttp')
     at('serverUri', 'http://localhost/myWebserver')
     
-    // time interval to report to the server, in ms. default 5000
+    // time interval to report to the server, in ms. Optional, default 5000
     at('reportInterval', 6000) 
 
-    // custom/meta variables
+    // custom/meta variables. Optional
     at('meta', 'meRock')
     at('meta', 'contentId', 6)
     at('meta', 'userGroup', 'Cool people')
@@ -54,8 +57,8 @@ It is possible to configure the activity-tracker:
 When new content/page is loaded without page reload, e.g. AJAX, you can re-provision the activity-tracker:
 ```html
 <script>
-at('contentId', 7);
-at('requestId', 'ff-gg-hh-ii-jjj');
+at('meta', 'contentId', 7);
+at('meta', 'requestId', 'ff-gg-hh-ii-jjj');
 atProvision();
 </script>
 ```

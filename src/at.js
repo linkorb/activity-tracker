@@ -61,8 +61,12 @@
       init: function () {
         this.initAgent();
         this.provision();
-        this.connect();
         this.exposeUtil();
+        if (!this.serverUri) {
+          this.log('serverUri not defined. nothing will be recorded.');
+          return;
+        }
+        this.connect();
         this.recordEventTypes.forEach(t.listenEvent);
         this.log('_at initialized');
       },
